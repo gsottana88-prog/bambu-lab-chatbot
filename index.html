@@ -31,9 +31,7 @@ header .status .dot.offline::after{border-color:var(--red)}
 .welcome{text-align:center;padding:40px 20px 20px;color:var(--text2)}
 .welcome h2{font-size:22px;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),#4f46e5);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .welcome p{font-size:14px;line-height:1.6;max-width:480px;margin:0 auto;color:var(--text3)}
-.welcome .badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:20px}
-.welcome .badges span{padding:6px 14px;border-radius:20px;font-size:12px;background:var(--accent-l);color:var(--accent);border:1px solid transparent;font-weight:500}
-.welcome .badges span:nth-child(even){background:var(--accent2-l);color:#2563eb}
+.welcome .mt20{margin-top:20px}
 .msg{max-width:85%;padding:12px 16px;border-radius:var(--radius);font-size:14px;line-height:1.5;animation:layerUp .35s ease-out;position:relative;word-wrap:break-word;box-shadow:var(--shadow)}
 .msg.user{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
 .msg.bot{background:var(--surface);color:var(--text);align-self:flex-start;border-bottom-left-radius:4px;box-shadow:var(--shadow)}
@@ -131,6 +129,13 @@ header .status .dot.offline::after{border-color:var(--red)}
 .stats-bar .stat .sv.green{color:var(--green)}
 .stats-bar .stat .sv.orange{color:var(--orange)}
 @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.kpi-ticker{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.kpi-card{position:absolute;display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:24px;background:rgba(255,255,255,.88);backdrop-filter:blur(8px);box-shadow:0 2px 16px rgba(0,0,0,.08);font-size:13px;color:var(--text);border:1px solid rgba(255,255,255,.5);font-weight:500;white-space:nowrap;animation:kpiIn .5s ease forwards;pointer-events:auto}
+.kpi-card .kfi{font-size:18px;line-height:1}
+.kpi-card.kpi-out{animation:kpiOut .5s ease forwards}
+.kpi-card .kpi-badge{background:var(--accent-l);color:var(--accent);font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:2px}
+@keyframes kpiIn{0%{opacity:0;transform:translateY(20px) scale(.8)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes kpiOut{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-20px) scale(.8)}}
 @media(max-width:640px){#chat{padding:12px}.msg{max-width:92%}#input-area{padding:10px 12px 16px}.suggestions{padding:6px 12px}.suggestions button{font-size:12px;padding:6px 12px}.modal{padding:20px}.stats-bar{gap:10px;padding:10px 12px}.stats-bar .stat{min-width:60px}.stats-bar .stat .sv{font-size:15px}}
 </style>
 </head>
@@ -155,17 +160,13 @@ header .status .dot.offline::after{border-color:var(--red)}
   <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
 </div>
 
+<div class="kpi-ticker" id="kpiTicker"></div>
+
 <div id="chat">
   <div class="welcome" id="welcome">
     <h2>Welcome to Bambu Lab Support</h2>
     <p>Ask me anything about our 3D printers, filaments, and accessories. I can look up orders, compare products, and help with support questions.</p>
-    <div class="badges">
-      <span>🔍 Order Lookup</span>
-      <span>🖨️ Product Info</span>
-      <span>📦 Shipping Status</span>
-      <span>💰 Pricing</span>
-      <span>🔄 Returns</span>
-    </div>
+
   </div>
 </div>
 
@@ -932,10 +933,139 @@ document.getElementById('input').addEventListener('input', function() {
   this.style.height = Math.min(this.scrollHeight, 120) + 'px';
 });
 
+// ============ KPI TICKER ============
+const US_STATES = new Set(['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC']);
+const COUNTRY_FLAGS = {
+  'US':'🇺🇸','SG':'🇸🇬','AUS':'🇦🇺','AU':'🇦🇺','DE':'🇩🇪','UK':'🇬🇧','GB':'🇬🇧','FR':'🇫🇷',
+  'ES':'🇪🇸','IT':'🇮🇹','NL':'🇳🇱','JP':'🇯🇵','CA':'🇨🇦','CN':'🇨🇳','KR':'🇰🇷','BR':'🇧🇷',
+  'MX':'🇲🇽','CH':'🇨🇭','SE':'🇸🇪','NO':'🇳🇴','DK':'🇩🇰','FI':'🇫🇮','AT':'🇦🇹','BE':'🇧🇪',
+  'PT':'🇵🇹','PL':'🇵🇱','CZ':'🇨🇿','IE':'🇮🇪','NZ':'🇳🇿','IN':'🇮🇳','AE':'🇦🇪','SA':'🇸🇦',
+  'RU':'🇷🇺','ZA':'🇿🇦','AR':'🇦🇷','CL':'🇨🇱','CO':'🇨🇴','PE':'🇵🇪','TH':'🇹🇭','MY':'🇲🇾',
+  'ID':'🇮🇩','PH':'🇵🇭','VN':'🇻🇳','TW':'🇹🇼','HK':'🇭🇰','IL':'🇮🇱','TR':'🇹🇷','GR':'🇬🇷',
+  'RO':'🇷🇴','HU':'🇭🇺','UA':'🇺🇦','EG':'🇪🇬','NG':'🇳🇬','KE':'🇰🇪','SK':'🇸🇰','SI':'🇸🇮',
+  'HR':'🇭🇷','LT':'🇱🇹','LV':'🇱🇻','EE':'🇪🇪','QC':'🇨🇦','ON':'🇨🇦','BC':'🇨🇦','AB':'🇨🇦',
+};
+function resolveFlag(loc) {
+  if (!loc) return '🌍';
+  const code = loc.toUpperCase().trim();
+  if (US_STATES.has(code)) return '🇺🇸';
+  return COUNTRY_FLAGS[code] || '🌍';
+}
+function extractLoc(addr) {
+  if (!addr) return { city: 'Unknown', region: '' };
+  const parts = addr.split(',').map(s => s.trim());
+  const region = parts.length > 1 ? parts[parts.length - 1] : '';
+  const city = parts.length > 1 ? parts[parts.length - 2] : parts[0];
+  return { city, region, flag: resolveFlag(region) };
+}
+let kpiTimer = null;
+let activeKPICards = [];
+function initKPITicker() {
+  if (kpiTimer) { clearInterval(kpiTimer); }
+  const lines = transactionData.trim().split('\n').slice(1);
+  if (lines.length < 2) return;
+  const orders = lines.map(l => {
+    const c = l.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g) || [];
+    return {
+      id: (c[0]||'').replace(/"/g,'').trim(), date: (c[1]||'').replace(/"/g,'').trim(),
+      name: (c[2]||'').replace(/"/g,'').trim(), product: (c[4]||'').replace(/"/g,'').trim(),
+      qty: parseInt((c[6]||'').replace(/"/g,''))||0,
+      total: parseFloat((c[8]||'').replace(/"/g,'').replace(',','.'))||0,
+      status: (c[9]||'').replace(/"/g,'').trim(), addr: (c[10]||'').replace(/"/g,'').trim(),
+    };
+  });
+  const processing = orders.filter(o => o.status === 'Processing').length;
+  const shipped = orders.filter(o => o.status === 'Shipped').length;
+  const delivered = orders.filter(o => o.status === 'Delivered').length;
+  const pending = orders.filter(o => o.status === 'Pending').length;
+  const cancelled = orders.filter(o => o.status === 'Cancelled').length;
+  const revenue = orders.reduce((s,o) => s + o.total, 0);
+  const prodCounts = {}; orders.forEach(o => { prodCounts[o.product] = (prodCounts[o.product]||0) + o.qty; });
+  const topProd = Object.entries(prodCounts).sort((a,b) => b[1]-a[1]).slice(0,3);
+  const regionCounts = {}; orders.forEach(o => {
+    const loc = extractLoc(o.addr);
+    regionCounts[loc.region] = (regionCounts[loc.region]||0) + 1;
+  });
+  const topRegions = Object.entries(regionCounts).filter(([r]) => r).sort((a,b) => b[1]-a[1]).slice(0,5);
+  const recent = orders.slice(-10).reverse();
+  const facts = [
+    () => `⏳ ${processing} orders processing right now`,
+    () => `🚚 ${shipped} orders in transit today`,
+    () => `✅ ${delivered} orders delivered this quarter`,
+    () => `📦 ${orders.length} total orders placed`,
+    () => `💵 $${revenue.toLocaleString()} total revenue`,
+  ];
+  const sampleFacts = (arr, n) => {
+    const shuffled = [...arr].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, n);
+  };
+  if (processing > 0) facts.push(() => `⚙️ ${processing} orders being printed now`);
+  if (pending > 0) facts.push(() => `🕐 ${pending} orders awaiting confirmation`);
+  if (cancelled > 0) facts.push(() => `❌ ${cancelled} orders were cancelled`);
+  if (topProd.length > 0) facts.push(() => `🔥 ${topProd[0][0]} — ${topProd[0][1]} units`);
+  if (topProd.length > 1) facts.push(() => `⭐ ${topProd[1][0]} — ${topProd[1][1]} units`);
+  topRegions.forEach(([reg, cnt]) => {
+    const flag = resolveFlag(reg);
+    facts.push(() => `${flag} ${cnt} orders to ${reg}`);
+  });
+  recent.forEach(o => {
+    const loc = extractLoc(o.addr);
+    facts.push(() => `${loc.flag} New order to ${loc.city} — ${o.product}`);
+  });
+  recent.forEach(o => {
+    const loc = extractLoc(o.addr);
+    if (o.status === 'Shipped') facts.push(() => `📮 ${loc.flag} Shipping ${o.product} to ${loc.city}`);
+    if (o.status === 'Delivered') facts.push(() => `🎉 ${loc.flag} Delivered ${o.product} in ${loc.city}`);
+  });
+  let idx = 0;
+  const ticker = document.getElementById('kpiTicker');
+  function showNext() {
+    const nowFacts = facts.filter(f => {
+      const txt = f();
+      return txt.length < 60;
+    });
+    if (!nowFacts.length || !ticker) return;
+    const fIdx = Math.floor(Math.random() * nowFacts.length);
+    const card = document.createElement('div');
+    card.className = 'kpi-card';
+    const txt = nowFacts[fIdx]();
+    const match = txt.match(/^([\p{Emoji}]+)\s(.+)/u);
+    if (match) {
+      card.innerHTML = `<span class="kfi">${match[1]}</span>${match[2]}`;
+    } else {
+      card.textContent = txt;
+    }
+    const w = window.innerWidth, h = window.innerHeight;
+    const cw = Math.min(280, txt.length * 8 + 60);
+    const ch = 38;
+    let x, y, tries = 0;
+    do {
+      x = 10 + Math.random() * (w - cw - 20);
+      y = 60 + Math.random() * (h - ch - 100);
+      tries++;
+    } while (tries < 10 && activeKPICards.some(c => Math.abs(c.x - x) < 60 && Math.abs(c.y - y) < 50));
+    card.style.left = x + 'px'; card.style.top = y + 'px';
+    ticker.appendChild(card);
+    const entry = { el: card, x, y, txt };
+    activeKPICards.push(entry);
+    const dur = 4000 + Math.random() * 4000;
+    setTimeout(() => {
+      card.classList.add('kpi-out');
+      setTimeout(() => {
+        card.remove();
+        activeKPICards = activeKPICards.filter(c => c.el !== card);
+      }, 500);
+    }, dur);
+  }
+  showNext();
+  kpiTimer = setInterval(showNext, 3500);
+}
+
 // ============ INIT ============
 loadSettings();
 updateStatus();
 updateDataStatus();
+initKPITicker();
 document.getElementById('input').focus();
 </script>
 </body>
