@@ -136,10 +136,17 @@ async function handleChat(request, env) {
 }
 
 async function handleData(request, env) {
-  const csv = await fetchTransactionData(env);
-  if (!csv) {
+  const csvUrl = env.GSHEET_CSV_URL;
+  if (!csvUrl) {
     return new Response(JSON.stringify({ error: 'No data source configured. Set GSHEET_CSV_URL env var.' }), {
       status: 404,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    });
+  }
+  const csv = await fetchTransactionData(env);
+  if (!csv) {
+    return new Response(JSON.stringify({ error: 'Failed to fetch CSV from URL', csvUrl, note: 'URL may be unreachable from Workers edge' }), {
+      status: 502,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     });
   }

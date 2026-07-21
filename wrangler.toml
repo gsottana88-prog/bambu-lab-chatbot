@@ -2,5 +2,4 @@ name = "bambu-chatbot"
 main = "worker.js"
 compatibility_date = "2025-01-01"
 
-[env.production]
 vars = { GSHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRUNeT1Ouu8YcqhSUdFRXBbXUDp7zttd3K9wxCCRtNJqGxyCohfn8AxRMOepW7nxW-w0NKZDf1a4Eqd/pub?output=csv" }
