@@ -130,12 +130,21 @@ header .status .dot.offline::after{border-color:var(--red)}
 .stats-bar .stat .sv.orange{color:var(--orange)}
 @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 .kpi-ticker{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-.kpi-card{position:absolute;display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:24px;background:rgba(255,255,255,.88);backdrop-filter:blur(8px);box-shadow:0 2px 16px rgba(0,0,0,.08);font-size:13px;color:var(--text);border:1px solid rgba(255,255,255,.5);font-weight:500;white-space:nowrap;animation:kpiIn .5s ease forwards;pointer-events:auto}
-.kpi-card .kfi{font-size:18px;line-height:1}
-.kpi-card.kpi-out{animation:kpiOut .5s ease forwards}
-.kpi-card .kpi-badge{background:var(--accent-l);color:var(--accent);font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:2px}
-@keyframes kpiIn{0%{opacity:0;transform:translateY(20px) scale(.8)}100%{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes kpiOut{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-20px) scale(.8)}}
+.kpi-map{width:100%;height:100%;opacity:0;animation:mapFadeIn 2s ease 1s forwards;pointer-events:none}
+.kpi-map .land{fill:none;stroke:var(--accent);stroke-width:.3;opacity:.7}
+.kpi-map .sea{fill:none}
+@keyframes mapFadeIn{to{opacity:1}}
+.kpi-flash{position:absolute;width:6px;height:6px;background:var(--accent);border-radius:50%;animation:flashDot 2s ease-out infinite;z-index:1}
+.kpi-flash::before{content:'';position:absolute;top:-4px;left:-4px;width:14px;height:14px;border-radius:50%;border:1.5px solid var(--accent);animation:flashRing 2s ease-out infinite;opacity:.6}
+@keyframes flashDot{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.6);opacity:1}}
+@keyframes flashRing{0%{transform:scale(1);opacity:.7}100%{transform:scale(3.5);opacity:0}}
+.kpi-circle{position:absolute;width:82px;height:82px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.88);backdrop-filter:blur(8px);box-shadow:0 2px 20px rgba(0,0,0,.07);border:1px solid rgba(255,255,255,.6);animation:kpiBounce .55s cubic-bezier(.34,1.56,.64,1) forwards;z-index:2}
+.kpi-circle .kpi-icon{font-size:22px;line-height:1.1;margin-bottom:2px}
+.kpi-circle .kpi-val{font-size:13px;font-weight:700;color:var(--accent);line-height:1.1}
+.kpi-circle .kpi-lbl{font-size:8.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;line-height:1;margin-top:1px}
+.kpi-circle.kpi-out{animation:kpiPopOut .4s ease forwards;pointer-events:none}
+@keyframes kpiBounce{0%{opacity:0;transform:scale(0)}50%{opacity:1;transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes kpiPopOut{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.35)}}
 @media(max-width:640px){#chat{padding:12px}.msg{max-width:92%}#input-area{padding:10px 12px 16px}.suggestions{padding:6px 12px}.suggestions button{font-size:12px;padding:6px 12px}.modal{padding:20px}.stats-bar{gap:10px;padding:10px 12px}.stats-bar .stat{min-width:60px}.stats-bar .stat .sv{font-size:15px}}
 </style>
 </head>
@@ -160,7 +169,22 @@ header .status .dot.offline::after{border-color:var(--red)}
   <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
 </div>
 
-<div class="kpi-ticker" id="kpiTicker"></div>
+<div class="kpi-ticker" id="kpiTicker">
+  <svg class="kpi-map" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet">
+    <g class="land">
+      <path d="M110,40 L140,35 L170,45 L200,35 L240,40 L280,50 L310,65 L330,80 L345,100 L350,130 L345,150 L335,170 L320,180 L290,185 L260,190 L240,210 L225,230 L210,245 L195,255 L185,260 L170,255 L155,245 L140,230 L125,215 L105,200 L90,195 L70,195 L55,200 L45,190 L50,170 L60,145 L65,120 L70,95 L85,70 L100,55 Z"/>
+      <path d="M170,265 L185,270 L200,280 L210,300 L215,320 L210,350 L200,380 L190,400 L180,415 L170,420 L160,410 L155,385 L150,355 L145,320 L145,295 L155,275 Z"/>
+      <path d="M410,80 L440,70 L480,65 L530,70 L570,85 L595,105 L600,125 L595,145 L585,160 L565,175 L540,185 L510,190 L480,185 L455,175 L435,160 L420,140 L410,115 Z"/>
+      <path d="M440,210 L470,200 L510,205 L540,215 L570,230 L585,255 L590,280 L580,320 L560,355 L540,375 L520,390 L500,395 L480,390 L460,375 L445,350 L435,320 L430,290 L432,260 Z"/>
+      <path d="M570,60 L610,45 L660,40 L710,45 L760,55 L810,70 L850,90 L880,115 L900,145 L915,175 L920,210 L910,240 L890,260 L860,270 L820,275 L780,270 L740,260 L700,245 L665,225 L635,200 L610,170 L590,140 L578,110 L572,85 Z"/>
+      <path d="M835,330 L850,325 L870,330 L885,340 L890,355 L885,370 L870,385 L855,390 L838,385 L825,370 L820,355 Z"/>
+      <path d="M330,20 L355,15 L375,25 L385,40 L380,60 L365,75 L345,80 L330,70 L322,55 L325,35 Z"/>
+      <path d="M915,165 L925,160 L935,165 L940,180 L935,195 L925,205 L915,200 L910,185 Z"/>
+      <path d="M470,130 L480,125 L490,130 L485,145 L475,150 L465,145 Z"/>
+      <path d="M430,200 L450,195 L470,205 L480,225 L475,245 L460,260 L440,265 L420,260 L410,245 L415,225 Z"/>
+    </g>
+  </svg>
+</div>
 
 <div id="chat">
   <div class="welcome" id="welcome">
@@ -945,6 +969,61 @@ const COUNTRY_FLAGS = {
   'RO':'🇷🇴','HU':'🇭🇺','UA':'🇺🇦','EG':'🇪🇬','NG':'🇳🇬','KE':'🇰🇪','SK':'🇸🇰','SI':'🇸🇮',
   'HR':'🇭🇷','LT':'🇱🇹','LV':'🇱🇻','EE':'🇪🇪','QC':'🇨🇦','ON':'🇨🇦','BC':'🇨🇦','AB':'🇨🇦',
 };
+const CITY_COORDS = {
+  "Los Angeles,CA":[110,240],"San Francisco,CA":[105,218],"San Jose,CA":[108,226],"San Diego,CA":[115,250],"Sacramento,CA":[108,210],
+  "Houston,TX":[395,260],"Austin,TX":[380,250],"Dallas,TX":[375,240],"San Antonio,TX":[385,255],"El Paso,TX":[220,255],
+  "Seattle,WA":[115,190],"Portland,OR":[110,198],
+  "Phoenix,AZ":[175,242],"Las Vegas,NV":[155,225],"Denver,CO":[320,210],"Albuquerque,NM":[230,240],
+  "Chicago,IL":[590,195],"Detroit,MI":[630,192],"Minneapolis,MN":[555,178],"Indianapolis,IN":[615,202],
+  "St Louis,MO":[575,212],"Kansas City,MO":[550,205],"Cleveland,OH":[635,195],"Columbus,OH":[620,200],
+  "Miami,FL":[720,280],"Tampa,FL":[710,265],"Atlanta,GA":[680,238],"Nashville,TN":[640,228],
+  "Charlotte,NC":[690,225],"Raleigh,NC":[700,220],"New Orleans,LA":[570,272],"Memphis,TN":[600,235],
+  "New York,NY":[765,198],"Boston,MA":[790,182],"Philadelphia,PA":[750,203],"Washington,DC":[738,208],
+  "Baltimore,MD":[740,202],"Richmond,VA":[728,215],"Norfolk,VA":[735,220],
+  "Singapore,SG":[765,335],"Sydney,AUS":[885,410],"Melbourne,AUS":[875,420],
+  "Berlin,DE":[505,155],"Munich,DE":[510,170],"Hamburg,DE":[500,145],
+  "London,UK":[460,158],"Manchester,UK":[455,150],"Paris,FR":[470,170],
+  "Marseille,FR":[475,185],"Tokyo,JP":[855,205],"Osaka,JP":[860,220],
+  "Toronto,ON":[690,178],"Montreal,QC":[745,168],"Vancouver,BC":[105,165],
+  "Calgary,AB":[140,155],"Edmonton,AB":[145,150],
+  "Madrid,ES":[440,195],"Barcelona,ES":[455,190],"Rome,IT":[490,192],"Milan,IT":[480,180],
+  "Amsterdam,NL":[477,152],"Brussels,BE":[478,158],"Zurich,CH":[490,168],
+  "Vienna,AT":[510,170],"Stockholm,SE":[520,130],"Oslo,NO":[510,125],
+  "Copenhagen,DK":[510,140],"Helsinki,FI":[538,125],"Dublin,IE":[448,148],
+  "Warsaw,PL":[535,160],"Prague,CZ":[510,165],"Budapest,HU":[525,172],
+  "Lisbon,PT":[428,200],"Seoul,KR":[835,185],"Beijing,CN":[810,190],
+  "Shanghai,CN":[815,215],"Hong Kong,HK":[795,240],"Bangkok,TH":[780,320],
+  "Kuala Lumpur,MY":[770,325],"Jakarta,ID":[790,360],"Manila,PH":[810,300],
+  "Ho Chi Minh City,VN":[795,305],"Taipei,TW":[830,235],"Mumbai,IN":[690,290],
+  "New Delhi,IN":[690,250],"Auckland,NZ":[930,430],"Cape Town,ZA":[520,430],
+  "Johannesburg,ZA":[545,410],"Lagos,NG":[490,320],"Cairo,EG":[550,255],
+  "Nairobi,KE":[555,345],"Istanbul,TR":[555,185],"Moscow,RU":[570,100],
+  "Mexico City,MX":[240,285],"Sao Paulo,BR":[440,400],"Rio de Janeiro,BR":[445,410],
+  "Buenos Aires,AR":[400,440],"Santiago,CL":[375,435],"Lima,PE":[360,370],
+  "Bogota,CO":[350,330],"Riyadh,SA":[635,260],"Dubai,AE":[635,255],
+  "Tel Aviv,IL":[570,215],"Athens,GR":[520,192],"Auckland,NZ":[930,430],
+};
+const REGION_COORDS = {
+  "CA":[112,230],"TX":[375,250],"WA":[115,192],"OR":[110,200],"NY":[765,198],"FL":[710,265],
+  "IL":[590,197],"GA":[680,240],"TN":[640,230],"NC":[690,225],"MA":[790,184],"PA":[750,205],
+  "CO":[320,212],"AZ":[175,244],"NV":[155,227],"MN":[555,180],"OH":[625,198],"MI":[630,194],
+  "NJ":[755,205],"VA":[720,215],"IN":[615,204],"MO":[565,210],"WI":[580,188],"MD":[738,204],
+  "CT":[780,195],"SC":[700,235],"AL":[645,248],"LA":[565,270],"KY":[650,215],"OK":[370,235],
+  "IA":[565,195],"KS":[375,218],"AR":[390,235],"UT":[180,210],"NM":[230,242],"NE":[370,200],
+  "WV":[690,210],"ID":[145,190],"HI":[50,290],"AK":[75,110],"NH":[790,185],"ME":[800,175],
+  "RI":[785,195],"DE":[750,207],"SD":[365,188],"ND":[365,178],"MT":[170,180],"WY":[210,195],
+  "VT":[785,185],"MS":[590,252],"DC":[738,210],
+  "SG":[765,335],"AUS":[880,410],"AU":[880,410],"DE":[505,158],"UK":[460,155],"GB":[460,155],
+  "FR":[472,175],"JP":[855,210],"CA":[690,180],"ON":[690,178],"QC":[745,168],"BC":[105,165],
+  "AB":[140,155],"ES":[445,195],"IT":[490,192],"NL":[477,152],"BE":[478,158],"CH":[490,168],
+  "AT":[510,170],"SE":[520,130],"NO":[510,125],"DK":[510,140],"FI":[538,125],"IE":[448,148],
+  "PL":[535,160],"CZ":[510,165],"HU":[525,172],"PT":[428,200],"KR":[835,185],"CN":[810,200],
+  "HK":[795,240],"TH":[780,320],"MY":[770,325],"ID":[790,360],"PH":[810,300],"VN":[795,305],
+  "TW":[830,235],"IN":[690,270],"NZ":[930,430],"ZA":[535,420],"NG":[490,320],"EG":[550,255],
+  "KE":[555,345],"TR":[555,185],"RU":[570,100],"MX":[240,285],"BR":[440,405],"AR":[400,440],
+  "CL":[375,435],"PE":[360,370],"CO":[350,330],"SA":[635,260],"AE":[635,255],"IL":[570,215],
+};
+const W = 1000, H = 500;
 function resolveFlag(loc) {
   if (!loc) return '🌍';
   const code = loc.toUpperCase().trim();
@@ -952,28 +1031,48 @@ function resolveFlag(loc) {
   return COUNTRY_FLAGS[code] || '🌍';
 }
 function extractLoc(addr) {
-  if (!addr) return { city: 'Unknown', region: '' };
+  if (!addr) return { city: 'Unknown', region: '', flag: '🌍' };
   const parts = addr.split(',').map(s => s.trim());
   const region = parts.length > 1 ? parts[parts.length - 1] : '';
   const city = parts.length > 1 ? parts[parts.length - 2] : parts[0];
   return { city, region, flag: resolveFlag(region) };
 }
+function getCoords(city, region) {
+  const key = city + ',' + region;
+  if (CITY_COORDS[key]) return CITY_COORDS[key];
+  if (CITY_COORDS[city + ',' + REGION_COORDS[region]?.[0]]) return CITY_COORDS[city + ',' + REGION_COORDS[region][0]];
+  for (const [k, v] of Object.entries(CITY_COORDS)) {
+    if (k.startsWith(city + ',')) return v;
+  }
+  if (REGION_COORDS[region]) {
+    const [rx, ry] = REGION_COORDS[region];
+    return [rx + (Math.random() - .5) * 30, ry + (Math.random() - .5) * 20];
+  }
+  if (US_STATES.has(region)) return [112 + Math.random() * 400, 190 + Math.random() * 50];
+  return [400 + Math.random() * 300, 200 + Math.random() * 100];
+}
 let kpiTimer = null;
+let flashTimer = null;
 let activeKPICards = [];
 function initKPITicker() {
   if (kpiTimer) { clearInterval(kpiTimer); }
+  if (flashTimer) { clearInterval(flashTimer); }
   const lines = transactionData.trim().split('\n').slice(1);
   if (lines.length < 2) return;
   const orders = lines.map(l => {
     const c = l.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g) || [];
     return {
-      id: (c[0]||'').replace(/"/g,'').trim(), date: (c[1]||'').replace(/"/g,'').trim(),
-      name: (c[2]||'').replace(/"/g,'').trim(), product: (c[4]||'').replace(/"/g,'').trim(),
+      id: (c[0]||'').replace(/"/g,'').trim(),
+      date: (c[1]||'').replace(/"/g,'').trim(),
+      name: (c[2]||'').replace(/"/g,'').trim(),
+      product: (c[4]||'').replace(/"/g,'').trim(),
       qty: parseInt((c[6]||'').replace(/"/g,''))||0,
       total: parseFloat((c[8]||'').replace(/"/g,'').replace(',','.'))||0,
-      status: (c[9]||'').replace(/"/g,'').trim(), addr: (c[10]||'').replace(/"/g,'').trim(),
+      status: (c[9]||'').replace(/"/g,'').trim(),
+      addr: (c[10]||'').replace(/"/g,'').trim(),
     };
   });
+  const l = extractLoc;
   const processing = orders.filter(o => o.status === 'Processing').length;
   const shipped = orders.filter(o => o.status === 'Shipped').length;
   const delivered = orders.filter(o => o.status === 'Delivered').length;
@@ -982,83 +1081,89 @@ function initKPITicker() {
   const revenue = orders.reduce((s,o) => s + o.total, 0);
   const prodCounts = {}; orders.forEach(o => { prodCounts[o.product] = (prodCounts[o.product]||0) + o.qty; });
   const topProd = Object.entries(prodCounts).sort((a,b) => b[1]-a[1]).slice(0,3);
-  const regionCounts = {}; orders.forEach(o => {
-    const loc = extractLoc(o.addr);
-    regionCounts[loc.region] = (regionCounts[loc.region]||0) + 1;
+  const regionCounts = {}; orders.forEach(o => { const loc = l(o.addr); regionCounts[loc.region] = (regionCounts[loc.region]||0) + 1; });
+  const topRegions = Object.entries(regionCounts).filter(([r]) => r).sort((a,b) => b[1]-a[1]).slice(0,8);
+  const recent = orders.slice(-15).reverse();
+
+  const circleFacts = [];
+  circleFacts.push({icon:'⏳', val:processing+'', lbl:'processing'});
+  circleFacts.push({icon:'🚚', val:shipped+'', lbl:'shipped'});
+  circleFacts.push({icon:'✅', val:delivered+'', lbl:'delivered'});
+  circleFacts.push({icon:'📦', val:orders.length+'', lbl:'total'});
+  circleFacts.push({icon:'💵', val:'$'+(revenue/1000).toFixed(1)+'k', lbl:'revenue'});
+  if (pending > 0) circleFacts.push({icon:'🕐', val:pending+'', lbl:'pending'});
+  if (cancelled > 0) circleFacts.push({icon:'❌', val:cancelled+'', lbl:'cancelled'});
+  if (processing > 0) circleFacts.push({icon:'⚙️', val:processing+'', lbl:'printing'});
+  topProd.forEach(([p, c], i) => {
+    const words = p.split(' ').slice(-2).join(' ');
+    circleFacts.push({icon: i === 0 ? '🔥' : '⭐', val: words.length > 10 ? words.slice(0,10) : words, lbl: c + ' units'});
   });
-  const topRegions = Object.entries(regionCounts).filter(([r]) => r).sort((a,b) => b[1]-a[1]).slice(0,5);
-  const recent = orders.slice(-10).reverse();
-  const facts = [
-    () => `⏳ ${processing} orders processing right now`,
-    () => `🚚 ${shipped} orders in transit today`,
-    () => `✅ ${delivered} orders delivered this quarter`,
-    () => `📦 ${orders.length} total orders placed`,
-    () => `💵 $${revenue.toLocaleString()} total revenue`,
-  ];
-  const sampleFacts = (arr, n) => {
-    const shuffled = [...arr].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, n);
-  };
-  if (processing > 0) facts.push(() => `⚙️ ${processing} orders being printed now`);
-  if (pending > 0) facts.push(() => `🕐 ${pending} orders awaiting confirmation`);
-  if (cancelled > 0) facts.push(() => `❌ ${cancelled} orders were cancelled`);
-  if (topProd.length > 0) facts.push(() => `🔥 ${topProd[0][0]} — ${topProd[0][1]} units`);
-  if (topProd.length > 1) facts.push(() => `⭐ ${topProd[1][0]} — ${topProd[1][1]} units`);
   topRegions.forEach(([reg, cnt]) => {
     const flag = resolveFlag(reg);
-    facts.push(() => `${flag} ${cnt} orders to ${reg}`);
+    circleFacts.push({icon: flag, val: reg, lbl: cnt + ' orders'});
   });
-  recent.forEach(o => {
-    const loc = extractLoc(o.addr);
-    facts.push(() => `${loc.flag} New order to ${loc.city} — ${o.product}`);
+  recent.slice(0,8).forEach(o => {
+    const loc = l(o.addr);
+    circleFacts.push({icon: loc.flag, val: loc.city.slice(0,8), lbl: o.status.toLowerCase()});
   });
-  recent.forEach(o => {
-    const loc = extractLoc(o.addr);
-    if (o.status === 'Shipped') facts.push(() => `📮 ${loc.flag} Shipping ${o.product} to ${loc.city}`);
-    if (o.status === 'Delivered') facts.push(() => `🎉 ${loc.flag} Delivered ${o.product} in ${loc.city}`);
-  });
-  let idx = 0;
+
   const ticker = document.getElementById('kpiTicker');
-  function showNext() {
-    const nowFacts = facts.filter(f => {
-      const txt = f();
-      return txt.length < 60;
-    });
-    if (!nowFacts.length || !ticker) return;
-    const fIdx = Math.floor(Math.random() * nowFacts.length);
+  function showCircle() {
+    if (!circleFacts.length || !ticker) return;
+    const f = circleFacts[Math.floor(Math.random() * circleFacts.length)];
     const card = document.createElement('div');
-    card.className = 'kpi-card';
-    const txt = nowFacts[fIdx]();
-    const match = txt.match(/^([\p{Emoji}]+)\s(.+)/u);
-    if (match) {
-      card.innerHTML = `<span class="kfi">${match[1]}</span>${match[2]}`;
-    } else {
-      card.textContent = txt;
-    }
-    const w = window.innerWidth, h = window.innerHeight;
-    const cw = Math.min(280, txt.length * 8 + 60);
-    const ch = 38;
+    card.className = 'kpi-circle';
+    card.innerHTML = `<span class="kpi-icon">${f.icon}</span><span class="kpi-val">${f.val}</span><span class="kpi-lbl">${f.lbl}</span>`;
+    const ww = window.innerWidth, wh = window.innerHeight;
+    const safeTop = 75, safeBottom = 160;
+    const r = 41;
     let x, y, tries = 0;
     do {
-      x = 10 + Math.random() * (w - cw - 20);
-      y = 60 + Math.random() * (h - ch - 100);
+      x = 12 + Math.random() * (ww - 82 - 24);
+      y = safeTop + Math.random() * (wh - safeTop - safeBottom - 82);
       tries++;
-    } while (tries < 10 && activeKPICards.some(c => Math.abs(c.x - x) < 60 && Math.abs(c.y - y) < 50));
+    } while (tries < 15 && activeKPICards.some(c => Math.hypot(c.x - x, c.y - y) < 100));
     card.style.left = x + 'px'; card.style.top = y + 'px';
     ticker.appendChild(card);
-    const entry = { el: card, x, y, txt };
-    activeKPICards.push(entry);
-    const dur = 4000 + Math.random() * 4000;
+    activeKPICards.push({el:card, x, y});
+    const dur = 5000 + Math.random() * 3000;
     setTimeout(() => {
       card.classList.add('kpi-out');
-      setTimeout(() => {
-        card.remove();
-        activeKPICards = activeKPICards.filter(c => c.el !== card);
-      }, 500);
+      setTimeout(() => { card.remove(); activeKPICards = activeKPICards.filter(c => c.el !== card); }, 400);
     }, dur);
   }
-  showNext();
-  kpiTimer = setInterval(showNext, 3500);
+
+  let flashQueue = [];
+  function buildFlashQueue() {
+    const shuffled = [...orders].sort(() => Math.random() - 0.5);
+    shuffled.forEach(o => {
+      const loc = l(o.addr);
+      const [cx, cy] = getCoords(loc.city, loc.region);
+      const sx = (cx / W) * window.innerWidth;
+      const sy = (cy / H) * window.innerHeight;
+      flashQueue.push({id: o.id, x: sx, y: sy, product: o.product, city: loc.city, flag: loc.flag});
+    });
+  }
+  buildFlashQueue();
+  let flashIdx = 0;
+  function showFlash() {
+    if (!flashQueue.length || !ticker) return;
+    const f = flashQueue[flashIdx % flashQueue.length];
+    flashIdx++;
+    const dot = document.createElement('div');
+    dot.className = 'kpi-flash';
+    dot.style.left = (f.x - 3) + 'px';
+    dot.style.top = (f.y - 3) + 'px';
+    ticker.appendChild(dot);
+    dot.innerHTML = `<span style="position:absolute;top:-14px;left:10px;font-size:9px;color:var(--accent);font-weight:600;white-space:nowrap;pointer-events:none">${f.flag} ${f.city}</span>`;
+    setTimeout(() => { dot.remove(); }, 6000);
+  }
+
+  showCircle();
+  showFlash();
+  for (let i = 0; i < 3; i++) setTimeout(showFlash, 800 * (i + 1));
+  kpiTimer = setInterval(showCircle, 4000);
+  flashTimer = setInterval(showFlash, 1200);
 }
 
 // ============ INIT ============
