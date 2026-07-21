@@ -123,7 +123,7 @@ header .settings-btn:hover{background:var(--surface2);color:var(--text)}
     <div class="field">
       <label>Cloudflare Worker URL</label>
       <input type="text" id="workerUrl" placeholder="https://bambu-chatbot.workers.dev" />
-      <div class="hint">Your deployed Cloudflare Worker URL. Required for the chatbot to work.</div>
+      <div class="hint">Pre-configured. Change only if you deployed your own worker.</div>
     </div>
     <div class="field">
       <label>DeepSeek API Key (fallback)</label>
@@ -154,6 +154,7 @@ header .settings-btn:hover{background:var(--surface2);color:var(--text)}
 
 <script>
 // ============ CONFIGURATION ============
+const DEFAULT_WORKER_URL = 'https://bambu-chatbot.gsottana88.workers.dev';
 const DEFAULT_CSV_DATA = `TXN-0117,2025-01-03,Elena Martinez,elena.martinez17@proton.me,ABS - Black,BL-ABS-BLK,2,"25,99","51,98",Delivered,"2259 Main St, Los Angeles, CA",Apple Pay
 TXN-0158,2025-01-06,Robert Johnson,robert.johnson33@outlook.com,PLA Basic - Green,BL-PLA-GRN,5,"22,99","114,95",Cancelled,"8747 Birch Way, Singapore, SG",Credit Card
 TXN-0212,2025-01-07,Noah Harris,noah.harris31@icloud.com,ABS - White,BL-ABS-WHT,3,"25,99","77,97",Delivered,"287 Pine Rd, Sydney, AUS",Klarna
@@ -466,16 +467,18 @@ function loadSettings() {
   if (saved) {
     try {
       const s = JSON.parse(saved);
-      document.getElementById('workerUrl').value = s.workerUrl || '';
+      document.getElementById('workerUrl').value = s.workerUrl || DEFAULT_WORKER_URL;
       document.getElementById('apiKey').value = s.apiKey || '';
       document.getElementById('sheetUrl').value = s.sheetUrl || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRUNeT1Ouu8YcqhSUdFRXBbXUDp7zttd3K9wxCCRtNJqGxyCohfn8AxRMOepW7nxW-w0NKZDf1a4Eqd/pub?output=csv';
     } catch {}
+  } else {
+    document.getElementById('workerUrl').value = DEFAULT_WORKER_URL;
   }
 }
 
 function saveSettings() {
   const settings = {
-    workerUrl: document.getElementById('workerUrl').value.trim(),
+    workerUrl: document.getElementById('workerUrl').value.trim() || DEFAULT_WORKER_URL,
     apiKey: document.getElementById('apiKey').value.trim(),
     sheetUrl: document.getElementById('sheetUrl').value.trim(),
   };
@@ -486,7 +489,12 @@ function saveSettings() {
 }
 
 function getWorkerUrl() {
-  return document.getElementById('workerUrl').value.trim() || localStorage.getItem('bambuChatSettings') ? JSON.parse(localStorage.getItem('bambuChatSettings') || '{}').workerUrl || '' : '';
+  const fromField = document.getElementById('workerUrl').value.trim();
+  if (fromField) return fromField;
+  try {
+    const saved = JSON.parse(localStorage.getItem('bambuChatSettings') || '{}');
+    return saved.workerUrl || DEFAULT_WORKER_URL;
+  } catch { return DEFAULT_WORKER_URL; }
 }
 
 function getApiKey() {
@@ -644,7 +652,7 @@ async function sendMessage() {
     } else if (apiKey) {
       reply = await callDeepSeekDirect(apiKey, text);
     } else {
-      throw new Error('No API connection configured. Open settings and set up your Worker URL or DeepSeek API key.');
+      throw new Error('No API connection configured. Check settings to ensure the Worker URL is set.');
     }
 
     hideTyping();
