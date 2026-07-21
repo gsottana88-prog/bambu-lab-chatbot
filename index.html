@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bambu Lab Assistant</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--bg1:#f8faff;--bg2:#f0ebff;--surface:#fff;--surface2:#f1f5f9;--surface3:#e2e8f0;--border:#cbd5e1;--text:#0f172a;--text2:#64748b;--text3:#94a3b8;--accent:#7c3aed;--accent2:#6d28d9;--accent-l:#ede9fe;--accent2-l:#dbeafe;--green:#10b981;--red:#ef4444;--orange:#f59e0b;--shadow:0 2px 12px rgba(0,0,0,.07);--shadow-l:0 4px 24px rgba(0,0,0,.1);--radius:12px;--radius-sm:8px}
@@ -130,10 +132,10 @@ header .status .dot.offline::after{border-color:var(--red)}
 .stats-bar .stat .sv.orange{color:var(--orange)}
 @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 .kpi-ticker{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-.kpi-map{width:100%;height:100%;opacity:0;animation:mapFadeIn 2s ease 1s forwards;pointer-events:none}
-.kpi-map .sea{fill:rgba(124,58,237,.02)}
-.kpi-map .land{fill:rgba(124,58,237,.055);stroke:var(--accent);stroke-width:.4;opacity:.85}
-@keyframes mapFadeIn{to{opacity:1}}
+.kpi-map{position:absolute;inset:0;z-index:0}
+.kpi-map::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(79,70,229,.08));z-index:1000;pointer-events:none}
+.kpi-map .leaflet-control-attribution{display:none!important}
+.kpi-map .leaflet-control-zoom{display:none!important}
 .kpi-flash{position:absolute;width:6px;height:6px;background:var(--accent);border-radius:50%;animation:flashDot 2s ease-out infinite;z-index:1}
 .kpi-flash::before{content:'';position:absolute;top:-4px;left:-4px;width:14px;height:14px;border-radius:50%;border:1.5px solid var(--accent);animation:flashRing 2s ease-out infinite;opacity:.6}
 @keyframes flashDot{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.6);opacity:1}}
@@ -170,29 +172,7 @@ header .status .dot.offline::after{border-color:var(--red)}
 </div>
 
 <div class="kpi-ticker" id="kpiTicker">
-  <svg class="kpi-map" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid slice">
-    <rect class="sea" x="0" y="0" width="1000" height="500"/>
-    <g class="land">
-      <path d="M55,185 L70,155 L100,130 L160,108 L250,95 L400,85 L580,85 L720,88 L790,120 L830,170 L840,210 L830,235 L810,255 L780,275 L740,290 L690,295 L630,292 L560,290 L490,290 L430,295 L380,308 L350,328 L340,352 L350,372 L368,378 L385,368 L395,348 L398,325 L388,300 L365,282 L335,278 L310,278 L285,282 L260,288 L240,292 L220,292 L195,288 L170,280 L145,272 L120,268 L100,264 L95,258 L78,245 L65,225 L58,205 Z"/>
-      <path d="M342,330 L352,345 L368,385 L382,422 L390,445 L400,442 L422,408 L450,370 L480,355 L510,350 L505,325 L475,298 L435,278 L395,268 L358,278 L348,294 Z"/>
-      <path d="M445,202 L438,198 L440,215 L455,228 L475,232 L502,222 L522,225 L530,240 L520,262 L518,288 L530,318 L528,348 L510,375 L498,420 L490,432 L475,415 L450,370 L438,330 L435,295 L438,268 L440,245 Z"/>
-      <path d="M410,205 L405,190 L410,170 L420,150 L435,132 L450,118 L470,110 L492,106 L515,108 L535,112 L550,120 L558,132 L560,145 L555,160 L545,172 L530,182 L522,192 L512,200 L500,205 L488,208 L475,208 L460,206 L445,203 L430,202 L420,202 Z"/>
-      <path d="M530,115 L550,98 L580,88 L620,85 L670,83 L730,82 L785,85 L830,92 L865,110 L888,140 L898,180 L892,215 L875,245 L850,270 L830,288 L810,298 L790,305 L775,308 L760,305 L748,298 L740,290 L730,285 L715,282 L695,280 L675,282 L655,288 L640,295 L630,298 L618,298 L608,295 L598,288 L590,280 L582,272 L575,265 L568,260 L558,258 L548,258 L538,260 L530,258 L525,252 L520,245 L518,238 L518,230 L520,222 L525,215 L530,210 L528,200 L528,185 L528,170 L528,155 L528,140 L528,125 Z"/>
-      <path d="M645,280 L655,270 L668,265 L680,265 L690,270 L698,278 L702,288 L700,302 L695,312 L685,320 L672,325 L658,325 L648,320 L640,312 L638,302 L638,292 Z"/>
-      <path d="M745,298 L760,295 L780,295 L800,296 L815,300 L822,308 L820,320 L812,332 L798,342 L782,348 L765,348 L748,342 L738,332 L735,320 L738,308 Z"/>
-      <path d="M798,298 L808,296 L818,298 L822,305 L820,312 L812,318 L802,315 L795,310 L795,302 Z"/>
-      <path d="M778,358 L788,355 L798,358 L800,365 L795,370 L785,372 L778,368 Z"/>
-      <path d="M830,448 L845,435 L860,420 L875,410 L890,405 L910,405 L930,410 L945,420 L955,435 L950,448 L935,458 L910,460 L880,458 L855,455 L840,452 Z"/>
-      <path d="M665,108 L690,98 L720,95 L740,100 L745,110 L738,118 L718,120 L698,118 L680,115 Z"/>
-      <path d="M445,158 L452,150 L462,148 L468,155 L462,162 L452,165 Z"/>
-      <path d="M845,205 L855,198 L865,200 L868,210 L862,222 L852,228 L842,222 Z"/>
-      <path d="M760,360 L775,355 L788,358 L795,365 L788,372 L775,370 Z"/>
-      <path d="M800,350 L810,345 L818,348 L820,358 L812,365 L802,362 Z"/>
-      <path d="M748,370 L758,366 L765,370 L762,378 L752,380 Z"/>
-      <path d="M538,368 L545,362 L552,364 L555,372 L548,378 L540,376 Z"/>
-      <path d="M920,438 L928,432 L938,435 L942,442 L935,448 L922,445 Z"/>
-    </g>
-  </svg>
+  <div class="kpi-map" id="kpiMap"></div>
 </div>
 
 <div id="chat">
@@ -978,61 +958,60 @@ const COUNTRY_FLAGS = {
   'RO':'🇷🇴','HU':'🇭🇺','UA':'🇺🇦','EG':'🇪🇬','NG':'🇳🇬','KE':'🇰🇪','SK':'🇸🇰','SI':'🇸🇮',
   'HR':'🇭🇷','LT':'🇱🇹','LV':'🇱🇻','EE':'🇪🇪','QC':'🇨🇦','ON':'🇨🇦','BC':'🇨🇦','AB':'🇨🇦',
 };
-const CITY_COORDS = {
-  "Los Angeles,CA":[110,240],"San Francisco,CA":[105,218],"San Jose,CA":[108,226],"San Diego,CA":[115,250],"Sacramento,CA":[108,210],
-  "Houston,TX":[395,260],"Austin,TX":[380,250],"Dallas,TX":[375,240],"San Antonio,TX":[385,255],"El Paso,TX":[220,255],
-  "Seattle,WA":[115,190],"Portland,OR":[110,198],
-  "Phoenix,AZ":[175,242],"Las Vegas,NV":[155,225],"Denver,CO":[320,210],"Albuquerque,NM":[230,240],
-  "Chicago,IL":[590,195],"Detroit,MI":[630,192],"Minneapolis,MN":[555,178],"Indianapolis,IN":[615,202],
-  "St Louis,MO":[575,212],"Kansas City,MO":[550,205],"Cleveland,OH":[635,195],"Columbus,OH":[620,200],
-  "Miami,FL":[720,280],"Tampa,FL":[710,265],"Atlanta,GA":[680,238],"Nashville,TN":[640,228],
-  "Charlotte,NC":[690,225],"Raleigh,NC":[700,220],"New Orleans,LA":[570,272],"Memphis,TN":[600,235],
-  "New York,NY":[765,198],"Boston,MA":[790,182],"Philadelphia,PA":[750,203],"Washington,DC":[738,208],
-  "Baltimore,MD":[740,202],"Richmond,VA":[728,215],"Norfolk,VA":[735,220],
-  "Singapore,SG":[765,335],"Sydney,AUS":[885,410],"Melbourne,AUS":[875,420],
-  "Berlin,DE":[505,155],"Munich,DE":[510,170],"Hamburg,DE":[500,145],
-  "London,UK":[460,158],"Manchester,UK":[455,150],"Paris,FR":[470,170],
-  "Marseille,FR":[475,185],"Tokyo,JP":[855,205],"Osaka,JP":[860,220],
-  "Toronto,ON":[690,178],"Montreal,QC":[745,168],"Vancouver,BC":[105,165],
-  "Calgary,AB":[140,155],"Edmonton,AB":[145,150],
-  "Madrid,ES":[440,195],"Barcelona,ES":[455,190],"Rome,IT":[490,192],"Milan,IT":[480,180],
-  "Amsterdam,NL":[477,152],"Brussels,BE":[478,158],"Zurich,CH":[490,168],
-  "Vienna,AT":[510,170],"Stockholm,SE":[520,130],"Oslo,NO":[510,125],
-  "Copenhagen,DK":[510,140],"Helsinki,FI":[538,125],"Dublin,IE":[448,148],
-  "Warsaw,PL":[535,160],"Prague,CZ":[510,165],"Budapest,HU":[525,172],
-  "Lisbon,PT":[428,200],"Seoul,KR":[835,185],"Beijing,CN":[810,190],
-  "Shanghai,CN":[815,215],"Hong Kong,HK":[795,240],"Bangkok,TH":[780,320],
-  "Kuala Lumpur,MY":[770,325],"Jakarta,ID":[790,360],"Manila,PH":[810,300],
-  "Ho Chi Minh City,VN":[795,305],"Taipei,TW":[830,235],"Mumbai,IN":[690,290],
-  "New Delhi,IN":[690,250],"Auckland,NZ":[930,430],"Cape Town,ZA":[520,430],
-  "Johannesburg,ZA":[545,410],"Lagos,NG":[490,320],"Cairo,EG":[550,255],
-  "Nairobi,KE":[555,345],"Istanbul,TR":[555,185],"Moscow,RU":[570,100],
-  "Mexico City,MX":[240,285],"Sao Paulo,BR":[440,400],"Rio de Janeiro,BR":[445,410],
-  "Buenos Aires,AR":[400,440],"Santiago,CL":[375,435],"Lima,PE":[360,370],
-  "Bogota,CO":[350,330],"Riyadh,SA":[635,260],"Dubai,AE":[635,255],
-  "Tel Aviv,IL":[570,215],"Athens,GR":[520,192],"Auckland,NZ":[930,430],
+const CITY_LATLNG = {
+  "Los Angeles,CA":[34.05,-118.24],"San Francisco,CA":[37.77,-122.42],"San Jose,CA":[37.34,-121.89],"San Diego,CA":[32.72,-117.16],"Sacramento,CA":[38.58,-121.49],
+  "Houston,TX":[29.76,-95.37],"Austin,TX":[30.27,-97.74],"Dallas,TX":[32.78,-96.81],"San Antonio,TX":[29.42,-98.49],"El Paso,TX":[31.76,-106.49],
+  "Seattle,WA":[47.61,-122.33],"Portland,OR":[45.52,-122.68],
+  "Phoenix,AZ":[33.45,-112.07],"Las Vegas,NV":[36.17,-115.14],"Denver,CO":[39.74,-104.99],"Albuquerque,NM":[35.08,-106.65],
+  "Chicago,IL":[41.88,-87.63],"Detroit,MI":[42.33,-83.05],"Minneapolis,MN":[44.98,-93.26],"Indianapolis,IN":[39.77,-86.16],
+  "St Louis,MO":[38.63,-90.20],"Kansas City,MO":[39.10,-94.58],"Cleveland,OH":[41.50,-81.69],"Columbus,OH":[39.96,-83.00],
+  "Miami,FL":[25.76,-80.19],"Tampa,FL":[27.95,-82.46],"Atlanta,GA":[33.75,-84.39],"Nashville,TN":[36.16,-86.78],
+  "Charlotte,NC":[35.23,-80.84],"Raleigh,NC":[35.78,-78.64],"New Orleans,LA":[29.95,-90.07],"Memphis,TN":[35.15,-90.05],
+  "New York,NY":[40.71,-74.01],"Boston,MA":[42.36,-71.06],"Philadelphia,PA":[39.95,-75.17],"Washington,DC":[38.91,-77.04],
+  "Baltimore,MD":[39.29,-76.61],"Richmond,VA":[37.54,-77.44],"Norfolk,VA":[36.85,-76.29],
+  "Singapore,SG":[1.35,103.82],"Sydney,AUS":[-33.87,151.21],"Melbourne,AUS":[-37.81,144.96],
+  "Berlin,DE":[52.52,13.40],"Munich,DE":[48.14,11.58],"Hamburg,DE":[53.55,9.99],
+  "London,UK":[51.51,-0.13],"Manchester,UK":[53.48,-2.24],"Paris,FR":[48.86,2.35],
+  "Marseille,FR":[43.30,5.37],"Tokyo,JP":[35.68,139.69],"Osaka,JP":[34.69,135.50],
+  "Toronto,ON":[43.65,-79.38],"Montreal,QC":[45.50,-73.57],"Vancouver,BC":[49.28,-123.12],
+  "Calgary,AB":[51.05,-114.07],"Edmonton,AB":[53.55,-113.49],
+  "Madrid,ES":[40.42,-3.70],"Barcelona,ES":[41.39,2.16],"Rome,IT":[41.90,12.50],"Milan,IT":[45.46,9.19],
+  "Amsterdam,NL":[52.37,4.90],"Brussels,BE":[50.85,4.35],"Zurich,CH":[47.38,8.54],
+  "Vienna,AT":[48.21,16.37],"Stockholm,SE":[59.33,18.07],"Oslo,NO":[59.91,10.75],
+  "Copenhagen,DK":[55.68,12.56],"Helsinki,FI":[60.17,24.94],"Dublin,IE":[53.35,-6.26],
+  "Warsaw,PL":[52.23,21.01],"Prague,CZ":[50.08,14.44],"Budapest,HU":[47.50,19.04],
+  "Lisbon,PT":[38.72,-9.14],"Seoul,KR":[37.57,126.98],"Beijing,CN":[39.90,116.41],
+  "Shanghai,CN":[31.23,121.47],"Hong Kong,HK":[22.32,114.17],"Bangkok,TH":[13.76,100.50],
+  "Kuala Lumpur,MY":[3.14,101.69],"Jakarta,ID":[-6.21,106.85],"Manila,PH":[14.60,120.98],
+  "Ho Chi Minh City,VN":[10.82,106.63],"Taipei,TW":[25.03,121.56],"Mumbai,IN":[19.08,72.88],
+  "New Delhi,IN":[28.61,77.23],"Auckland,NZ":[-36.85,174.76],"Cape Town,ZA":[-33.92,18.42],
+  "Johannesburg,ZA":[-26.20,28.05],"Lagos,NG":[6.52,3.38],"Cairo,EG":[30.04,31.24],
+  "Nairobi,KE":[-1.29,36.82],"Istanbul,TR":[41.01,28.98],"Moscow,RU":[55.76,37.62],
+  "Mexico City,MX":[19.43,-99.13],"Sao Paulo,BR":[-23.55,-46.63],"Rio de Janeiro,BR":[-22.91,-43.20],
+  "Buenos Aires,AR":[-34.60,-58.38],"Santiago,CL":[-33.45,-70.67],"Lima,PE":[-12.05,-77.04],
+  "Bogota,CO":[4.71,-74.07],"Riyadh,SA":[24.65,46.71],"Dubai,AE":[25.20,55.27],
+  "Tel Aviv,IL":[32.09,34.78],"Athens,GR":[37.98,23.72],
 };
-const REGION_COORDS = {
-  "CA":[112,230],"TX":[375,250],"WA":[115,192],"OR":[110,200],"NY":[765,198],"FL":[710,265],
-  "IL":[590,197],"GA":[680,240],"TN":[640,230],"NC":[690,225],"MA":[790,184],"PA":[750,205],
-  "CO":[320,212],"AZ":[175,244],"NV":[155,227],"MN":[555,180],"OH":[625,198],"MI":[630,194],
-  "NJ":[755,205],"VA":[720,215],"IN":[615,204],"MO":[565,210],"WI":[580,188],"MD":[738,204],
-  "CT":[780,195],"SC":[700,235],"AL":[645,248],"LA":[565,270],"KY":[650,215],"OK":[370,235],
-  "IA":[565,195],"KS":[375,218],"AR":[390,235],"UT":[180,210],"NM":[230,242],"NE":[370,200],
-  "WV":[690,210],"ID":[145,190],"HI":[50,290],"AK":[75,110],"NH":[790,185],"ME":[800,175],
-  "RI":[785,195],"DE":[750,207],"SD":[365,188],"ND":[365,178],"MT":[170,180],"WY":[210,195],
-  "VT":[785,185],"MS":[590,252],"DC":[738,210],
-  "SG":[765,335],"AUS":[880,410],"AU":[880,410],"DE":[505,158],"UK":[460,155],"GB":[460,155],
-  "FR":[472,175],"JP":[855,210],"CA":[690,180],"ON":[690,178],"QC":[745,168],"BC":[105,165],
-  "AB":[140,155],"ES":[445,195],"IT":[490,192],"NL":[477,152],"BE":[478,158],"CH":[490,168],
-  "AT":[510,170],"SE":[520,130],"NO":[510,125],"DK":[510,140],"FI":[538,125],"IE":[448,148],
-  "PL":[535,160],"CZ":[510,165],"HU":[525,172],"PT":[428,200],"KR":[835,185],"CN":[810,200],
-  "HK":[795,240],"TH":[780,320],"MY":[770,325],"ID":[790,360],"PH":[810,300],"VN":[795,305],
-  "TW":[830,235],"IN":[690,270],"NZ":[930,430],"ZA":[535,420],"NG":[490,320],"EG":[550,255],
-  "KE":[555,345],"TR":[555,185],"RU":[570,100],"MX":[240,285],"BR":[440,405],"AR":[400,440],
-  "CL":[375,435],"PE":[360,370],"CO":[350,330],"SA":[635,260],"AE":[635,255],"IL":[570,215],
+const REGION_LATLNG = {
+  "CA":[37.5,-119.8],"TX":[31.5,-99.5],"WA":[47.4,-120.7],"OR":[43.9,-120.6],"NY":[42.8,-75.2],"FL":[28.1,-81.6],
+  "IL":[40.1,-89.1],"GA":[32.2,-83.7],"TN":[35.8,-86.3],"NC":[35.5,-79.3],"MA":[42.2,-71.5],"PA":[40.9,-77.8],
+  "CO":[39.0,-105.3],"AZ":[34.2,-111.8],"NV":[39.3,-116.6],"MN":[46.2,-94.3],"OH":[40.2,-82.9],"MI":[44.9,-85.6],
+  "NJ":[40.1,-74.6],"VA":[37.5,-79.0],"IN":[39.9,-86.2],"MO":[38.5,-92.5],"WI":[44.5,-89.5],"MD":[39.1,-76.6],
+  "CT":[41.5,-72.7],"SC":[33.9,-81.3],"AL":[32.8,-86.7],"LA":[30.9,-92.1],"KY":[37.8,-84.7],"OK":[35.5,-98.0],
+  "IA":[42.0,-94.0],"KS":[38.5,-98.0],"UT":[39.3,-111.1],"NM":[34.5,-106.0],"NE":[41.5,-99.5],
+  "WV":[38.6,-80.5],"ID":[44.1,-114.7],"HI":[20.5,-157.8],"AK":[64.0,-150.0],"NH":[43.5,-71.5],"ME":[45.2,-69.0],
+  "RI":[41.6,-71.6],"DE":[38.9,-75.5],"SD":[44.4,-100.2],"ND":[47.1,-100.8],"MT":[46.9,-110.5],"WY":[42.8,-107.4],
+  "VT":[44.1,-72.5],"MS":[32.8,-89.8],"DC":[38.91,-77.04],
+  "SG":[1.35,103.82],"AUS":[-25.0,134.0],"AU":[-25.0,134.0],"DE":[51.0,10.0],"UK":[55.0,-3.0],"GB":[55.0,-3.0],
+  "FR":[46.5,2.0],"JP":[36.0,138.0],"CA":[56.0,-106.0],"ON":[51.0,-85.0],"QC":[52.0,-72.0],"BC":[53.0,-126.0],
+  "AB":[54.0,-115.0],"ES":[40.0,-3.0],"IT":[42.0,12.0],"NL":[52.0,5.0],"BE":[50.5,4.0],"CH":[46.5,8.0],
+  "AT":[47.5,14.0],"SE":[62.0,15.0],"NO":[62.0,10.0],"DK":[55.9,8.8],"FI":[63.0,26.0],"IE":[53.0,-8.0],
+  "PL":[52.0,19.0],"CZ":[49.5,15.0],"HU":[47.0,19.0],"PT":[39.5,-8.0],"KR":[36.0,128.0],"CN":[35.0,105.0],
+  "HK":[22.3,114.2],"TH":[15.5,100.5],"MY":[3.5,102.0],"ID":[-5.0,115.0],"PH":[11.0,123.0],"VN":[14.0,108.0],
+  "TW":[24.0,121.0],"IN":[21.0,78.0],"NZ":[-41.0,174.0],"ZA":[-29.0,25.0],"NG":[9.0,8.0],"EG":[26.0,30.0],
+  "KE":[-0.5,37.0],"TR":[39.0,35.0],"RU":[60.0,90.0],"MX":[23.0,-102.0],"BR":[-14.0,-53.0],"AR":[-37.0,-63.0],
+  "CL":[-35.0,-71.0],"PE":[-10.0,-76.0],"CO":[4.0,-72.0],"SA":[25.0,45.0],"AE":[24.0,54.0],"IL":[31.0,34.0],
 };
-const W = 1000, H = 500;
 function resolveFlag(loc) {
   if (!loc) return '🌍';
   const code = loc.toUpperCase().trim();
@@ -1046,26 +1025,42 @@ function extractLoc(addr) {
   const city = parts.length > 1 ? parts[parts.length - 2] : parts[0];
   return { city, region, flag: resolveFlag(region) };
 }
-function getCoords(city, region) {
+function getLatLng(city, region) {
   const key = city + ',' + region;
-  if (CITY_COORDS[key]) return CITY_COORDS[key];
-  if (CITY_COORDS[city + ',' + REGION_COORDS[region]?.[0]]) return CITY_COORDS[city + ',' + REGION_COORDS[region][0]];
-  for (const [k, v] of Object.entries(CITY_COORDS)) {
+  if (CITY_LATLNG[key]) return CITY_LATLNG[key];
+  for (const [k, v] of Object.entries(CITY_LATLNG)) {
     if (k.startsWith(city + ',')) return v;
   }
-  if (REGION_COORDS[region]) {
-    const [rx, ry] = REGION_COORDS[region];
-    return [rx + (Math.random() - .5) * 30, ry + (Math.random() - .5) * 20];
-  }
-  if (US_STATES.has(region)) return [112 + Math.random() * 400, 190 + Math.random() * 50];
-  return [400 + Math.random() * 300, 200 + Math.random() * 100];
+  if (REGION_LATLNG[region]) return REGION_LATLNG[region];
+  if (US_STATES.has(region)) return [37.5 + Math.random() * 8, -100 + Math.random() * 18];
+  return [35 + Math.random() * 30, 20 + Math.random() * 120];
 }
+let leafletMap = null;
 let kpiTimer = null;
 let flashTimer = null;
 let activeKPICards = [];
 function initKPITicker() {
   if (kpiTimer) { clearInterval(kpiTimer); }
   if (flashTimer) { clearInterval(flashTimer); }
+  if (!leafletMap && typeof L !== 'undefined') {
+    leafletMap = L.map('kpiMap', {
+      center: [20, 0],
+      zoom: 2.5,
+      zoomControl: false,
+      attributionControl: false,
+      dragging: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      boxZoom: false,
+      keyboard: false,
+      tap: false,
+    });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+    }).addTo(leafletMap);
+    document.getElementById('kpiMap').style.pointerEvents = 'none';
+    setTimeout(() => { if (leafletMap) leafletMap.invalidateSize(); }, 0);
+  }
   const lines = transactionData.trim().split('\n').slice(1);
   if (lines.length < 2) return;
   const orders = lines.map(l => {
@@ -1147,10 +1142,8 @@ function initKPITicker() {
     const shuffled = [...orders].sort(() => Math.random() - 0.5);
     shuffled.forEach(o => {
       const loc = l(o.addr);
-      const [cx, cy] = getCoords(loc.city, loc.region);
-      const sx = (cx / W) * window.innerWidth;
-      const sy = (cy / H) * window.innerHeight;
-      flashQueue.push({id: o.id, x: sx, y: sy, product: o.product, city: loc.city, flag: loc.flag});
+      const [lat, lng] = getLatLng(loc.city, loc.region);
+      flashQueue.push({id: o.id, lat, lng, product: o.product, city: loc.city, flag: loc.flag});
     });
   }
   buildFlashQueue();
@@ -1159,10 +1152,11 @@ function initKPITicker() {
     if (!flashQueue.length || !ticker) return;
     const f = flashQueue[flashIdx % flashQueue.length];
     flashIdx++;
+    const pt = leafletMap ? leafletMap.latLngToContainerPoint([f.lat, f.lng]) : {x: 500, y: 250};
     const dot = document.createElement('div');
     dot.className = 'kpi-flash';
-    dot.style.left = (f.x - 3) + 'px';
-    dot.style.top = (f.y - 3) + 'px';
+    dot.style.left = (pt.x - 3) + 'px';
+    dot.style.top = (pt.y - 3) + 'px';
     ticker.appendChild(dot);
     dot.innerHTML = `<span style="position:absolute;top:-14px;left:10px;font-size:9px;color:var(--accent);font-weight:600;white-space:nowrap;pointer-events:none">${f.flag} ${f.city}</span>`;
     setTimeout(() => { dot.remove(); }, 6000);
@@ -1174,6 +1168,11 @@ function initKPITicker() {
   kpiTimer = setInterval(showCircle, 4000);
   flashTimer = setInterval(showFlash, 1200);
 }
+
+// ============ RESIZE HANDLER ============
+window.addEventListener('resize', () => {
+  if (leafletMap) leafletMap.invalidateSize();
+});
 
 // ============ INIT ============
 loadSettings();
